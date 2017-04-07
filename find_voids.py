@@ -1,16 +1,20 @@
 import numpy as np
 import scipy.ndimage
+from load_and_smooth_map import *
+
 
 mapfile = '/Users/ALEX/Berkeley/IGM_Nyx_CLAMATO/CLAMATO_06_16/map.bin'
-map_smoothed, allx, ally, allz = load_and_smooth_map(mapfile)
+map_smoothed, allx, ally, allz = load_and_smooth_map(mapfile,(36,48,680))
 
 '''Second step in void finder.  Remove all overlapping voids.  Start with the largest
 void in the map.  Remove all voids that overlap with this void.  Move through the list
 until all sub-voids are removed.'''
 
-ud = np.loadtxt('underdensities_2mpc_smoothing.txt')
+ud = np.loadtxt('underdensities_2mpc_smoothing_constant_boundary.txt')
 vradius = ud[:,0]
 vcenter = ud[:,1:]
+
+pix_size = 0.5
 
 # Convert from pixels to h^{-1} Mpc
 vcenter = pix_size*np.array(vcenter)
@@ -35,7 +39,7 @@ while np.any(new_vradius):
 	new_vradius = np.delete(new_vradius,inds_to_remove)
 	cnt = cnt + 1
 
-voids_file = open('voids.txt','w')
+voids_file = open('voids_2mpc_smoothing_constant_boundary.txt','w')
 for i in range(len(non_overlap_vcenter)):
 	voids_file.write('%10.5f %10.5f %10.5f %10.5f\n' % (non_overlap_vradius[i],non_overlap_vcenter[i][0],non_overlap_vcenter[i][1],non_overlap_vcenter[i][2]))
 

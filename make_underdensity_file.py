@@ -3,7 +3,7 @@ import scipy.ndimage
 from load_and_smooth_map import *
 
 mapfile = '/Users/ALEX/Berkeley/IGM_Nyx_CLAMATO/CLAMATO_06_16/map.bin'
-map_smoothed, allx, ally, allz = load_and_smooth_map(mapfile)
+map_smoothed, allx, ally, allz = load_and_smooth_map(mapfile,(36,48,680))
 
 '''First step in void finder.  Find all points with delta_F^{recon} > 0.224.
 Expand them into contiguous regions with <delta_F> = 0.167 (spherical underdensities).
@@ -14,6 +14,8 @@ centers = np.array(np.where(map_smoothed>0.224))
 min_r = 1.5
 max_r = 50.0
 nr = 500
+
+pix_size = 0.5
 
 all_radii = np.linspace(min_r,max_r,nr)
 all_rho_enclosed = np.zeros_like(all_radii)
@@ -34,6 +36,6 @@ for j in range(np.shape(centers)[1]):
 	vcenter.append(center)
 	vradius.append(np.max(dist_sorted[totdeltaf_density > 0.167]))
     
-underdensities_file = open('underdensities_2mpc_smoothing.txt','w')
+underdensities_file = open('underdensities_2mpc_smoothing_constant_boundary.txt','w')
 for i in range(len(vradius)):
 	underdensities_file.write('%10.5f %10.5f %10.5f %10.5f\n' % (vradius[i],vcenter[i][0],vcenter[i][1],vcenter[i][2]))

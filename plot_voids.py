@@ -13,11 +13,11 @@ zlya = 2.35
 dist_to_center = cosmo.comoving_distance(zlya).value*cosmo.h
 
 mapfile = '/Users/ALEX/Berkeley/IGM_Nyx_CLAMATO/CLAMATO_06_16/map.bin'
-map_smoothed, allx, ally, allz = load_and_smooth_map(mapfile)
+map_smoothed, allx, ally, allz = load_and_smooth_map(mapfile,(36,48,680))
 
 '''Plot the voids on top of slices of the map.  Each slice is separated by 2 h^{-1} Mpc'''
 
-voids = np.loadtxt('voids.txt')
+voids = np.loadtxt('voids_2mpc_smoothing_constant_boundary.txt')
 non_overlap_vradius = voids[:,0]
 non_overlap_vcenter = voids[:,1:]
 	
@@ -57,4 +57,4 @@ for i in range(9):
 			ax.add_artist(circle1)
 			
 fig.text(0.04, 0.5, r'y ($h^{-1}$ Mpc)', rotation='vertical')
-plt.savefig('clamato_06_16_with_voids.pdf')
+plt.savefig('clamato_06_16_with_voids_constant_boundary.pdf')

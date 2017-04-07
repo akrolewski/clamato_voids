@@ -1,5 +1,5 @@
 import matplotlib.gridspec as gridspec
-gs = gridspec.GridSpec(10,9)
+gs = gridspec.GridSpec(13,12)
 import matplotlib
 from matplotlib import font_manager
 import numpy as np
@@ -16,15 +16,16 @@ cosmo = FlatLambdaCDM(H0=70, Om0=0.31)
 ra0 = 149.975
 dec0 = 2.15
 zmid = 2.35
+dec1 = 2.4880706 
 deg_per_hMpc = 1./ cosmo.h / cosmo.comoving_distance(zmid).value * 180./np.pi
 dist_to_center = cosmo.comoving_distance(zmid).value*cosmo.h
 
 # Load the map
-mapfile = '/Users/ALEX/Berkeley/IGM_Nyx_CLAMATO/CLAMATO_06_16/map.bin'
-map_smoothed, allx, ally, allz = load_and_smooth_map(mapfile)
+mapfile = 'map_2017tmp_sm2.0.bin'
+map_smoothed, allx, ally, allz = load_and_smooth_map(mapfile,(48,48,680))
 
 # Load the galaxies and convert coordinates to h^{-1} Mpc
-galaxies = ascii.read('galxcorr_cl2016_v0.dat')
+galaxies = ascii.read('galxcorr_cl2016_v0_with_vuds.dat')
 galaxies_x = np.cos(0.5*(dec0+dec1)*np.pi/180.)*(galaxies['ra'] - ra0)/deg_per_hMpc
 galaxies_y = (galaxies['dec'] - dec0)/deg_per_hMpc
 galaxies_z = cosmo.comoving_distance(galaxies['zspec']).value*cosmo.h
@@ -34,9 +35,14 @@ galaxies_z = cosmo.comoving_distance(galaxies['zspec']).value*cosmo.h
 #galaxies_y = galaxies_y[(galaxies['source'] == 'MOSDEF')]
 #galaxies_z = galaxies_z[(galaxies['source'] == 'MOSDEF')]
 
-galaxies_x = galaxies_x[(galaxies['source'] == 'MOSDEF') | (galaxies['source'] == 'zDEEP')]
-galaxies_y = galaxies_y[(galaxies['source'] == 'MOSDEF') | (galaxies['source'] == 'zDEEP')]
-galaxies_z = galaxies_z[(galaxies['source'] == 'MOSDEF') | (galaxies['source'] == 'zDEEP')]
+galaxies_x_mosdef = galaxies_x[(galaxies['source'] == 'MOSDEF')]
+galaxies_y_mosdef = galaxies_y[(galaxies['source'] == 'MOSDEF')]
+galaxies_z_mosdef = galaxies_z[(galaxies['source'] == 'MOSDEF')]
+
+galaxies_x_vuds = galaxies_x[(galaxies['source'] == 'VUDS')]
+galaxies_y_vuds = galaxies_y[(galaxies['source'] == 'VUDS')]
+galaxies_z_vuds = galaxies_z[(galaxies['source'] == 'VUDS')]
+
 
 #galaxies_x = galaxies_x[(galaxies['source'] == 'zDEEP')]
 #galaxies_y = galaxies_y[(galaxies['source'] == 'zDEEP')]
@@ -56,21 +62,35 @@ matplotlib.rcParams['text.latex.preamble']=[r"\usepackage{amsmath}"]
 matplotlib.rcParams['font.family'] = 'serif'
 matplotlib.rcParams['font.serif'] = 'cm'
 
-fig = plt.figure()
+fig = plt.figure(figsize=(6.09,8))
 step = 4
-for i in range(9):
-	ax = plt.subplot(gs[9-i,:])
-	ax.contourf(allz[step*i,:,:]+dist_to_center-170.,ally[step*i,:,:],map_smoothed[step*i,:,:],cmap=plt.cm.jet_r,levels=np.linspace(np.min(map_smoothed),np.max(map_smoothed),10))
+for i in range(12):
+	ax = plt.subplot(gs[12-i,:])
+	ax.contourf(allz[step*i,:,:]+dist_to_center-170.,ally[step*i,:,:],map_smoothed[step*i,:,:],cmap=plt.cm.jet_r,levels=np.linspace(np.min(map_smoothed),np.max(map_smoothed),10),vmin=-0.25,vmax=0.25)
 	ax.minorticks_on()
+	ax2 = ax.twiny()
+	ax2.minorticks_on()
+	ax2.set_xlim([2.15875,2.55805])
+	ax2.set_xticks([2.2,2.25, 2.3,2.35,2.4,2.45,2.5])
 	if i != 0:
 		plt.setp( ax.get_xticklabels(), visible=False)
+	if i != 11:
+		plt.setp( ax2.get_xticklabels(), visible=False)
 	if i == 0:
 		ax.set_xlabel(r'z ($h^{-1}$ Mpc)')
+	if i == 11:
+		ax2.set_xlabel(r'redshift')
 	for item in (ax.get_yticklabels()):
 		item.set_fontsize(6)
-	ax.plot(galaxies_z[np.where((np.array(galaxies_x//(step/2)).astype('int') == i))],galaxies_y[np.where((np.array(galaxies_x//(step/2)).astype('int') == i))],'.',color='k')
+	for item in (ax2.get_xticklabels()):
+		item.set_fontsize(9)
+	for item in (ax.get_xticklabels()):
+		item.set_fontsize(9)
+	ax.plot(galaxies_z_mosdef[np.where((np.array(galaxies_x_mosdef//(step/2)).astype('int') == i))],galaxies_y_mosdef[np.where((np.array(galaxies_x_mosdef//(step/2)).astype('int') == i))],'.',color='k')
+	ax.plot(galaxies_z_vuds[np.where((np.array(galaxies_x_vuds//(step/2)).astype('int') == i))],galaxies_y_vuds[np.where((np.array(galaxies_x_vuds//(step/2)).astype('int') == i))],'*',color='g',markeredgewidth=0.0)
 	ax.set_xlim(np.array([0,340])+dist_to_center-170.)
 	ax.set_ylim([0,24])
+	ax.set_yticks([0,8,16,24])
 	'''for j in range(len(non_overlap_vcenter)):
 		void = non_overlap_vcenter[j]
 		radius = non_overlap_vradius[j]
@@ -82,7 +102,19 @@ for i in range(9):
 			circle1 = plt.Circle((z,y), radius, color='k', fill=False)
 			ax.add_artist(circle1)'''
 fig.text(0.04, 0.5, r'y ($h^{-1}$ Mpc)', rotation='vertical')
+
+#Create custom artists
+simArtist = plt.Line2D((0,1),(0,0), color='k', marker='.', linestyle='')
+anyArtist = plt.Line2D((0,1),(0,0), color='g', marker='*', linestyle='')
+
+#Create legend from custom artist/label lists
+ax.legend([simArtist,anyArtist],
+          ['MOSDEF', 'VUDS'],numpoints=1,bbox_to_anchor=(0.915, 0.955),bbox_transform=plt.gcf().transFigure,frameon=False,fontsize='small')
+
+fig.subplots_adjust(hspace=0.5)
+
+
 plt.ion()
 plt.show()
-plt.savefig('clamato_galaxies_mosdef.pdf')
+plt.savefig('clamato_03_17_galaxies_mosdef_vuds.pdf')
 
